@@ -1,4 +1,14 @@
 
+import json
+import numpy as np
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Selecting the device (GPU or CPU)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class ReplayBuffer(object):
     """ReplayBuffer class to store and sample experiences for training deep reinforcement learning algorithms."""
 
@@ -277,24 +287,51 @@ class TD3(object):
                     target_param.data.copy_(tau * param.data + (1-tau)*target_param.data)            # Sample a batch of transitions from the replay buffer
                     batch_states, batch_next_states, batch_actions, batch_rewards, batch_dones = replay_buffer.sample(batch_size)
             
-def save(self, filename, directory):
-    """
-    Save the trained model.
+    def save(self, filename, directory):
+        """
+        Save the trained model.
+        
+        Args:
+            filename (str): Filename for the saved model.
+            directory (str): Directory where the model will be saved.
+        """
+        torch.save(self.actor.state_dict(),  '%s/%s_actor.pth'  % (directory, filename))
+        torch.save(self.critic.state_dict(), '%s/%s_critic.pth' % (directory, filename))
     
-    Args:
-        filename (str): Filename for the saved model.
-        directory (str): Directory where the model will be saved.
-    """
-    torch.save(self.actor.state_dict(),  '%s/%s_actor.pth'  % (directory, filename))
-    torch.save(self.critic.state_dict(), '%s/%s_critic.pth' % (directory, filename))
+    def load(self, filename, directory):
+        """
+        Load a pre-trained model.
+        
+        Args:
+            filename (str): Filename of the saved model.
+            directory (str): Directory where the model is located.
+        """
+        self.actor.load_state_dict(torch.load('%s/%s_actor.pth' % (directory, filename)))
+        self.critic.load_state_dict(torch.load('%s/%s_critic.pth' % (directory, filename)))
 
-def load(self, filename, directory):
+
+def evaluate_policy(policy, env, eval_episodes=10):
     """
-    Load a pre-trained model.
+    Evaluate the given policy over a number of episodes and calculate the average reward.
     
     Args:
-        filename (str): Filename of the saved model.
-        directory (str): Directory where the model is located.
+        policy : The policy to be evaluated.
+        env : RL environment.
+        eval_episodes (int, optional): Number of episodes to evaluate the policy.
+    
+    Returns:
+        float: The average reward over the evaluation episodes.
     """
-    self.actor.load_state_dict(torch.load('%s/%s_actor.pth' % (directory, filename)))
-    self.critic.load_state_dict(torch.load('%s/%s_critic.pth' % (directory, filename)))
+    avg_reward = 0
+    for _ in range(eval_episodes):
+        obs = env.reset()
+        done = False
+        while not done:
+            action = policy.select_action(np.array(obs))
+            obs, reward, done, _ = env.step(action)
+            avg_reward += reward
+    avg_reward /= eval_episodes
+    print("---------------------------------------")
+    print("Average Reward over the Evaluation Step: %f" % (avg_reward))
+    print("---------------------------------------")
+    return avg_reward

@@ -3,6 +3,11 @@ ObsBot2D class for simulating a 2D environment with observation bots.
 This class inherits from gym.Env and defines methods to simulate the movement of observation bots in a rectangular arena.
 """
 
+import numpy as np
+
+import random
+import gym
+
 class ObsBot2D(gym.Env):
     def __init__(self, num_bots):
         """
@@ -103,9 +108,9 @@ class ObsBot2D(gym.Env):
         if self.steps > self._max_episode_steps:
             done = True
 
-    info = {}
+        info = {}
 
-    return self.state, reward, done, info
+        return self.state, reward, done, info
 
 def render(self, mode='rgb_array'):
     """
