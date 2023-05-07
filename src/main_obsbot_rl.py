@@ -20,30 +20,20 @@ if __name__ == '__main__':
     opt = parse_opts()
     print(json.dumps(vars(opt), indent=2))
 
-    env_name = "ObsBot2D" # Name of a environment
     seed = 0 # Random seed number
-    start_timesteps = 1e4 # Number of iterations/timesteps before which the model randomly chooses an action, and after which it starts to use the policy network
-    eval_freq = 5e3 # How often the evaluation step is performed (after how many timesteps)
-    max_timesteps = 5e5 # Total number of iterations/timesteps
-    save_models = True # Boolean checker whether or not to save the pre-trained model
-    expl_noise = 0.1 # Exploration noise - STD value of exploration Gaussian noise
-    batch_size = 100 # Size of the batch
-    discount = 0.99 # Discount factor gamma, used in the calculation of the total discounted reward
-    tau = 0.005 # Target network update rate
-    policy_noise = 0.2 # STD of Gaussian noise adde d to the actions for the exploration purposes
-    noise_clip = 0.5 # Maximum value of the Gaussian noise added to the actions (policy)
-    policy_freq = 2 # Number of iterations to wait before the policy network (Actor model) is updated
-
-    file_name = "%s_%s_%s" % ("TD3", env_name, str(seed))
+    
+    file_name = "%s_%s_%s" % ("TD3", opt.env_name, str(seed))
     print ("---------------------------------------")
     print ("Settings: %s" % (file_name))
     print ("---------------------------------------")
 
+    model_path = os.path.join(".",opt.result_path, "models")
+
     # Create a folder for saving models
-    if not os.path.exists("./results"):
-        os.makedirs("./results")
-    if save_models and not os.path.exists("./pytorch_models"):
-        os.makedirs("./pytorch_models")
+    if not os.path.exists("./%s" % opt.result_path):
+        os.makedirs("./%s" % opt.result_path)
+    if opt.save_models and not os.path.exists(model_path):
+        os.makedirs(model_path)
 
     # Create an environment
     num_bots = 10
@@ -89,21 +79,24 @@ if __name__ == '__main__':
 
     # Training Loop
 
-    while total_timesteps < max_timesteps:
+    while total_timesteps < opt.max_timesteps:
         # If the episode is done
         if done:
 
             # If we are not at the very beginning, we start the training process of the model
             if total_timesteps != 0:
                 print("Total Timesteps: {} Episode Num: {} Reward: {}".format(total_timesteps, episode_num, episode_reward))
-                policy.train(replay_buffer, episode_timesteps, batch_size, discount, tau, policy_noise, noise_clip, policy_freq)
+                policy.train(replay_buffer, episode_timesteps,
+                             opt.batch_size, opt.discount,
+                             opt.tau, opt.policy_noise,
+                             opt.noise_clip, opt.policy_freq)
 
             # We evaluate the episode and we save the policy
-            if timesteps_since_eval >= eval_freq:
-                timesteps_since_eval %= eval_freq
+            if timesteps_since_eval >= opt.eval_freq:
+                timesteps_since_eval %= opt.eval_freq
                 evaluations.append(evaluate_policy(policy,env))
-                policy.save(file_name, directory="./pytorch_models")
-                np.save("./results/%s" % (file_name), evaluations)
+                policy.save(file_name, directory=model_path)
+                np.save("./%s/%s" % (opt.result_path,file_name), evaluations)
     
             # When the training step is done, we reset the state of the environment
             obs = env.reset()
@@ -117,13 +110,13 @@ if __name__ == '__main__':
             episode_num += 1
   
         # Before 10000 timesteps, we play random actions
-        if total_timesteps < start_timesteps:
+        if total_timesteps < opt.start_timesteps:
             action = env.action_space.sample()
         else: # After 10000 timesteps, we switch to the model
             action = policy.select_action(np.array(obs))
             # If the explore_noise parameter is not 0, we add noise to the action and we clip it
-            if expl_noise != 0:
-                action = (action + np.random.normal(0, expl_noise, size=env.action_space.shape[0])).clip(env.action_space.low, env.action_space.high)
+            if opt.expl_noise != 0:
+                action = (action + np.random.normal(0, opt.expl_noise, size=env.action_space.shape[0])).clip(env.action_space.low, env.action_space.high)
   
         # The agent performs the action in the environment, then reaches the next state and receives the reward
         new_obs, reward, done, _ = env.step(action)
@@ -145,8 +138,8 @@ if __name__ == '__main__':
 
     # We add the last policy evaluation to our list of evaluations and we save our model
     evaluations.append(evaluate_policy(policy,env))
-    if save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
-    np.save("./results/%s" % (file_name), evaluations)
+    if opt.save_models: policy.save("%s" % (file_name), directory=model_path)
+    np.save("./%s/%s" % (opt.result_path,file_name), evaluations)
 
 #    # create result dir
 #    if not os.path.exists(opt.result_path):
