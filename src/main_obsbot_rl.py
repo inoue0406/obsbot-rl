@@ -65,10 +65,6 @@ if __name__ == '__main__':
     work_dir = mkdir("exp","brs")
     monitor_dir = mkdir(work_dir, "monitor")
     max_episode_steps = env._max_episode_steps
-    save_env_vid = False
-    if save_env_vid:
-        env = wrappers.Monitor(env, monitor_dir, force=True)
-        env.reset()    
 
     # Initialize the loop
     total_timesteps = 0
@@ -141,39 +137,18 @@ if __name__ == '__main__':
     if opt.save_models: policy.save("%s" % (file_name), directory=model_path)
     np.save("./%s/%s" % (opt.result_path,file_name), evaluations)
 
-#    # create result dir
-#    if not os.path.exists(opt.result_path):
-#        os.mkdir(opt.result_path)
-#    
-#    with open(os.path.join(opt.result_path, 'opts.json'), 'w') as opt_file:
-#        opt_file.write(json.dumps(vars(opt), indent=2))
-#
-##    # Tracking by MLFlow
-##    experiment_id = mlflow.tracking.MlflowClient().get_experiment_by_name(opt.result_path[0:10])
-#    
-#    # generic log file  
-#    logfile = open(os.path.join(opt.result_path, 'log_run.txt'),'w')
-#    logfile.write('Start time:'+time.ctime()+'\n')
-#    tstart = time.time()
-#
-#    # model information
-#    modelinfo = open(os.path.join(opt.result_path, 'model_info.txt'),'w')
-#            
-#    modelinfo.write('Model Structure \n')
-#    modelinfo.write(str(model))
-#    count_parameters(model,modelinfo)
-#    modelinfo.close()
-#        
-#    # Prep logger
-#    train_logger = Logger(
-#        os.path.join(opt.result_path, 'train.log'),
-#        ['epoch', 'loss', 'lr'])
-#    
-#    # training 
-#
-#
-#    # output elapsed time
-#    logfile.write('End time: '+time.ctime()+'\n')
-#    tend = time.time()
-#    tdiff = float(tend-tstart)/3600.0
-#    logfile.write('Elapsed time[hours]: %f \n' % tdiff)
+    # Save learned action as a video
+    save_env_vid = True
+    if save_env_vid:
+        env = wrappers.Monitor(env, monitor_dir, force = True)
+        env.reset()
+
+        env.seed(seed)
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        state_dim = env.observation_space.shape[0]
+        action_dim = env.action_space.shape[0]
+        max_action = float(env.action_space.high[0])
+        policy = TD3(state_dim, action_dim, max_action)
+        policy.load(file_name, model_path)
+        _ = evaluate_policy(policy, eval_episodes=eval_episodes)
