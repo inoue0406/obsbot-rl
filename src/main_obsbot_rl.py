@@ -3,8 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+import gym
+from gym import wrappers
+
 from env_obsbot_2dmov import ObsBot2D
-from model_TD3 import *
+from model_TD3 import ReplayBuffer, TD3, evaluate_policy
 from opts import parse_opts
 
 def count_parameters(model,f):
