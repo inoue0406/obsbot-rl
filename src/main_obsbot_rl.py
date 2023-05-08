@@ -2,8 +2,12 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import json
 
 import gym
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from gym import wrappers
 
 from env_obsbot_2dmov import ObsBot2D
