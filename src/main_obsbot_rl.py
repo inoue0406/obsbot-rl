@@ -8,9 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from gym import wrappers
-#from gym.wrappers import RecordVideo
 
-#from env_obsbot_2dmov import ObsBot2D
 import obsbot_env
 from model_TD3 import ReplayBuffer, TD3, evaluate_policy
 from opts import parse_opts
@@ -45,8 +43,6 @@ if __name__ == '__main__':
 
     # Create an environment
     num_bots = 10
-    #env = ObsBot2D(num_bots)
-    #env = gym.make("obsbot_env:obsbot2d-v0")
     env = gym.make("obsbot2d-v0",num_bots=num_bots)
 
     # Set seeds etc.
@@ -153,8 +149,6 @@ if __name__ == '__main__':
     save_env_vid = True
     if save_env_vid:
         env = wrappers.Monitor(env, monitor_dir, force = True)
-        #env = Recordvideo(env, monitor_dir)
-        import pdb;pdb.set_trace()
         env.reset()
 
         env.seed(seed)
