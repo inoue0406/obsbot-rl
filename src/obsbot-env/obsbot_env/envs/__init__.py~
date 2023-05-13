@@ -1,0 +1,1 @@
+from obsbot_env.envs.env_obsbot_2dmov.py import ObsBot2D

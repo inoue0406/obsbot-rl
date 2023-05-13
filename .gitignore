@@ -4,6 +4,7 @@
 .vscode/
 data*/
 data
+run/exp*
 run/log*
 run/result*
 run/old*
