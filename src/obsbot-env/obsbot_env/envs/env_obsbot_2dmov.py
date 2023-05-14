@@ -5,6 +5,7 @@ This class inherits from gym.Env and defines methods to simulate the movement of
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 import random
 import gym
@@ -27,6 +28,9 @@ class ObsBot2D(gym.Env):
         
         # define the size of a rectangular arena in [m]
         self.arena_size = 10000.0
+
+        # define x of the reward area
+        self.xreward = self.arena_size/3.0
         
         # time step in [s]
         self.dt = 300
@@ -75,7 +79,7 @@ class ObsBot2D(gym.Env):
         """
         # give reward if Bots reach rightmost part of arena 
         x = self.state.reshape([2,self.num_bots])[0,:]
-        count_right = x > self.arena_size/3
+        count_right = x > self.xreward
         reward = sum(count_right)
 
         # finish if all the bots reach right most part of arena
@@ -92,7 +96,7 @@ class ObsBot2D(gym.Env):
             action (np.array): Action to be performed.
             
         Returns:
-            tuple: Contains the next state, reward, done flag, and an empty info dictionary.
+            tuple: Contains observation, reward, done flag, and an empty info dictionary.
         """
         # get next state given action
 
@@ -109,9 +113,18 @@ class ObsBot2D(gym.Env):
         if self.steps > self._max_episode_steps:
             done = True
 
+        print("steps:",self.steps," reward:",reward," done:",done)
+
+        # reset the step
+        if done == True:
+            self.steps=0
+
+        # set observation
+        obs = self.state
+            
         info = {}
 
-        return self.state, reward, done, info
+        return obs, reward, done, info
 
     def render(self, mode='rgb_array'):
         """
@@ -143,6 +156,10 @@ class ObsBot2D(gym.Env):
         self.ax.set_xlim(-self.arena_size/2,self.arena_size/2)
         self.ax.set_ylim(-self.arena_size/2,self.arena_size/2)
         self.ax.grid()
+
+        # Plot goal area
+        rect = patches.Rectangle(xy=(self.xreward, -self.arena_size/2), width=self.arena_size/2, height=self.arena_size, fc='y')
+        self.ax.add_patch(rect)
     
         xpos = self.state.reshape([2,self.num_bots])[0,:]
         ypos = self.state.reshape([2,self.num_bots])[1,:]

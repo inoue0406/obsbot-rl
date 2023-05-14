@@ -34,6 +34,7 @@ if __name__ == '__main__':
     print ("---------------------------------------")
 
     model_path = os.path.join(".",opt.result_path, "models")
+    monitor_dir = os.path.join(".",opt.result_path, "monitor")
 
     # Create a folder for saving models
     if not os.path.exists("./%s" % opt.result_path):
@@ -62,14 +63,6 @@ if __name__ == '__main__':
     # Define a list to store eval results
     evaluations = [evaluate_policy(policy,env)]
 
-    # Create new folder to store final results
-    def mkdir(base, name):
-        path = os.path.join(base, name)
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return path
-    work_dir = mkdir("exp","brs")
-    monitor_dir = mkdir(work_dir, "monitor")
     max_episode_steps = env._max_episode_steps
 
     env = wrappers.Monitor(env, monitor_dir, force = True)
@@ -148,7 +141,7 @@ if __name__ == '__main__':
     # Save learned action as a video
     save_env_vid = True
     if save_env_vid:
-        env = wrappers.Monitor(env, monitor_dir, force = True)
+        #env = wrappers.Monitor(env, monitor_dir, force = True)
         env.reset()
 
         env.seed(seed)
