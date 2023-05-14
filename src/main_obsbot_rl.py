@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     max_episode_steps = env._max_episode_steps
 
-    env = wrappers.Monitor(env, monitor_dir, force = True)
+    #env = wrappers.Monitor(env, monitor_dir, force = True)
     
     # Initialize the loop
     total_timesteps = 0
@@ -140,8 +140,9 @@ if __name__ == '__main__':
 
     # Save learned action as a video
     save_env_vid = True
+    eval_episodes = 10
     if save_env_vid:
-        #env = wrappers.Monitor(env, monitor_dir, force = True)
+        env = wrappers.Monitor(env, monitor_dir, force = True)
         env.reset()
 
         env.seed(seed)

@@ -7,7 +7,7 @@ python ../src/main_obsbot_rl.py --env_name ObsBot2D\
        --result_path $case\
        --start_timesteps 10000\
        --eval_freq 5000\
-       --max_timesteps 15000\
+       --max_timesteps 20000\
        --save_models\
        --expl_noise 0.1\
        --batch_size 100\
