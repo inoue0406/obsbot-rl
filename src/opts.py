@@ -32,6 +32,11 @@ def parse_opts():
         help='Whether or not to save the trained model')
     parser.set_defaults(save_models=False)
     parser.add_argument(
+        '--save_env_vid',
+        action='store_true',
+        help='Whether or not to save videos')
+    parser.set_defaults(save_env_vid=False)
+    parser.add_argument(
         '--expl_noise',
         default=0.1,
         type=float,
