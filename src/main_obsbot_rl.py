@@ -153,4 +153,4 @@ if __name__ == '__main__':
         max_action = float(env.action_space.high[0])
         policy = TD3(state_dim, action_dim, max_action)
         policy.load(file_name, model_path)
-        _ = evaluate_policy(policy, eval_episodes=eval_episodes)
+        _ = evaluate_policy(policy, env, eval_episodes=eval_episodes)

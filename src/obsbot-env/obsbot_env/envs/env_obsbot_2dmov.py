@@ -104,6 +104,8 @@ class ObsBot2D(gym.Env):
         velocity = action
         dxy =  velocity * self.dt
         self.state = self.state + dxy
+        # clip xy position within arena area
+        self.state = np.clip(self.state,-self.arena_size/2,self.arena_size/2)
 
         # calculate reward
         reward,done = self.reward_rightmost()
@@ -156,6 +158,9 @@ class ObsBot2D(gym.Env):
         self.ax.set_xlim(-self.arena_size/2,self.arena_size/2)
         self.ax.set_ylim(-self.arena_size/2,self.arena_size/2)
         self.ax.grid()
+
+        reward,done = self.reward_rightmost()
+        self.ax.set_title("Reward: %f" % reward)
 
         # Plot goal area
         rect = patches.Rectangle(xy=(self.xreward, -self.arena_size/2), width=self.arena_size/2, height=self.arena_size, fc='y')
