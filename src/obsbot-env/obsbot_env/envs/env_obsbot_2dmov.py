@@ -29,8 +29,11 @@ class ObsBot2D(gym.Env):
         # define the size of a rectangular arena in [m]
         self.arena_size = 10000.0
 
-        # define x of the reward area
-        self.xreward = self.arena_size/3.0
+        # define XY coordinates of the reward area
+        self.xreward1 = 2000.0
+        self.xreward2 = 4000.0
+        self.yreward1 = -4500.0
+        self.yreward2 = 4500.0
         
         # time step in [s]
         self.dt = 300
@@ -69,7 +72,7 @@ class ObsBot2D(gym.Env):
         self.state = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)
         return self.state
 
-    def reward_rightmost(self):    
+    def reward_rect(self):    
         """
         Calculate reward based on the positions of the bots in the arena.
         
@@ -79,7 +82,8 @@ class ObsBot2D(gym.Env):
         """
         # give reward if Bots reach rightmost part of arena 
         x = self.state.reshape([2,self.num_bots])[0,:]
-        count_right = x > self.xreward
+        y = self.state.reshape([2,self.num_bots])[1,:]
+        count_right = (x > self.xreward1) &  (x < self.xreward2) &  (y > self.yreward1) &  (y < self.yreward2) 
         reward = sum(count_right)
 
         # finish if all the bots reach right most part of arena
@@ -108,7 +112,7 @@ class ObsBot2D(gym.Env):
         self.state = np.clip(self.state,-self.arena_size/2,self.arena_size/2)
 
         # calculate reward
-        reward,done = self.reward_rightmost()
+        reward,done = self.reward_rect()
 
         # if max step is reached, set the done flag
         self.steps += 1
@@ -159,11 +163,14 @@ class ObsBot2D(gym.Env):
         self.ax.set_ylim(-self.arena_size/2,self.arena_size/2)
         self.ax.grid()
 
-        reward,done = self.reward_rightmost()
+        reward,done = self.reward_rect()
         self.ax.set_title("Reward: %f" % reward)
 
         # Plot goal area
-        rect = patches.Rectangle(xy=(self.xreward, -self.arena_size/2), width=self.arena_size/2, height=self.arena_size, fc='y')
+        rect = patches.Rectangle(xy=(self.xreward1, self.yreward1), 
+                                 width=self.xreward2-self.xreward1,
+                                 height=self.yreward2-self.yreward1,
+                                 fc='y')
         self.ax.add_patch(rect)
     
         xpos = self.state.reshape([2,self.num_bots])[0,:]
