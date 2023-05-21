@@ -141,16 +141,17 @@ if __name__ == '__main__':
 
     # Save learned action as a video
     eval_episodes = 10
-    if opt.save_env_vid:
-        #env = wrappers.Monitor(env, monitor_dir, force = True)
-        env.reset()
+    if not opt.save_env_vid:
+        env = wrappers.Monitor(env, monitor_dir, force = True)
+        
+    env.reset()
 
-        env.seed(seed)
-        torch.manual_seed(seed)
-        np.random.seed(seed)
-        state_dim = env.observation_space.shape[0]
-        action_dim = env.action_space.shape[0]
-        max_action = float(env.action_space.high[0])
-        policy = TD3(state_dim, action_dim, max_action)
-        policy.load(file_name, model_path)
-        _ = evaluate_policy(policy, env, eval_episodes=eval_episodes)
+    env.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
+    policy = TD3(state_dim, action_dim, max_action)
+    policy.load(file_name, model_path)
+    _ = evaluate_policy(policy, env, eval_episodes=eval_episodes)

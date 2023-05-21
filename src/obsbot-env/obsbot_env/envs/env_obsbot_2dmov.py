@@ -34,10 +34,13 @@ class ObsBot2D(gym.Env):
         self.xreward2 = 4000.0
         self.yreward1 = -4500.0
         self.yreward2 = 4500.0
-        
+
         # time step in [s]
         self.dt = 300
 
+        # scaling coefficient for scaling input to the neural network
+        self.scaling_coeff = 10000.0
+        
         # maximum steps per episode
         self._max_episode_steps = 30
         # run steps for counting up
@@ -126,7 +129,7 @@ class ObsBot2D(gym.Env):
             self.steps=0
 
         # set observation
-        obs = self.state
+        obs = self.state / self.scaling_coeff
             
         info = {}
 
