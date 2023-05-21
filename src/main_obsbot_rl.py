@@ -73,7 +73,11 @@ if __name__ == '__main__':
     timesteps_since_eval = 0
     episode_num = 0
     done = True
-    t0 = time.time()
+
+    # generic log file
+    logfile = open(os.path.join(opt.result_path, 'log_run.txt'),'w')
+    logfile.write('Start time:'+time.ctime()+'\n')
+    tstart = time.time()
 
     # Training Loop
 
@@ -139,6 +143,12 @@ if __name__ == '__main__':
     if opt.save_models: policy.save("%s" % (file_name), directory=model_path)
     np.save("./%s/%s" % (opt.result_path,file_name), evaluations)
 
+    # output elapsed time
+    logfile.write('End time: '+time.ctime()+'\n')
+    tend = time.time()
+    tdiff = float(tend-tstart)/3600.0
+    logfile.write('Elapsed time[hours]: %f \n' % tdiff)
+    
     # Save learned action as a video
     eval_episodes = 10
     if not opt.save_env_vid:
