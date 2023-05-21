@@ -30,7 +30,8 @@ class ObsBot2D(gym.Env):
         self.arena_size = 10000.0
 
         # define XY coordinates of the reward area
-        self.xreward1 = 2000.0
+        #self.xreward1 = 2000.0
+        self.xreward1 = 0.0
         self.xreward2 = 4000.0
         self.yreward1 = -4500.0
         self.yreward2 = 4500.0
@@ -71,8 +72,10 @@ class ObsBot2D(gym.Env):
         Returns:
             np.array: The initial state of the environment.
         """
-        # start from arbitrary position
+        # Start from arbitrary position
         self.state = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)
+        # Initialize with zero velocity
+        self.velocity = np.zeros(2*self.num_bots)
         return self.state
 
     def reward_rect(self):    
@@ -107,10 +110,9 @@ class ObsBot2D(gym.Env):
         """
         # get next state given action
 
-        # calculate next position given velocity
-        velocity = action
-        dxy =  velocity * self.dt
-        self.state = self.state + dxy
+        # calculate next position given velocity and acceleration
+        self.velocity = self.velocity + action * self.dt / 1000.0
+        self.state = self.state + self.velocity * self.dt
         # clip xy position within arena area
         self.state = np.clip(self.state,-self.arena_size/2,self.arena_size/2)
 
