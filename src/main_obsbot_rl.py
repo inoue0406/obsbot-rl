@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from gym import wrappers
+from utils import Logger
 
 import obsbot_env
 from model_TD3 import ReplayBuffer, TD3, evaluate_policy
@@ -79,7 +80,10 @@ if __name__ == '__main__':
     logfile.write('Start time:'+time.ctime()+'\n')
     tstart = time.time()
 
-    # Training Loop
+    # Prep a logger for recording reward
+    train_logger = Logger(
+        os.path.join(opt.result_path, 'train.log'),
+        ['episode', 'reward','replay_buffer_size'])
 
     while total_timesteps < opt.max_timesteps:
         # If the episode is done
@@ -96,9 +100,14 @@ if __name__ == '__main__':
             # We evaluate the episode and we save the policy
             if timesteps_since_eval >= opt.eval_freq:
                 timesteps_since_eval %= opt.eval_freq
-                evaluations.append(evaluate_policy(policy,env))
+                reward = evaluate_policy(policy,env)
+                evaluations.append(reward)
                 policy.save(file_name, directory=model_path)
                 np.save("./%s/%s" % (opt.result_path,file_name), evaluations)
+                train_logger.log({
+                    'episode': episode_num,
+                    'reward': reward,
+                    'replay_buffer_size': len(replay_buffer.storage)})
     
             # When the training step is done, we reset the state of the environment
             obs = env.reset()

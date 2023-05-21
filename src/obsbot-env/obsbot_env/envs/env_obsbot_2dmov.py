@@ -111,7 +111,7 @@ class ObsBot2D(gym.Env):
         # get next state given action
 
         # calculate next position given velocity and acceleration
-        self.velocity = self.velocity + action * self.dt / 1000.0
+        self.velocity = self.velocity + action * self.dt / 10000.0
         self.state = self.state + self.velocity * self.dt
         # clip xy position within arena area
         self.state = np.clip(self.state,-self.arena_size/2,self.arena_size/2)
@@ -124,7 +124,7 @@ class ObsBot2D(gym.Env):
         if self.steps > self._max_episode_steps:
             done = True
 
-        print("steps:",self.steps," reward:",reward," done:",done)
+        #print("steps:",self.steps," reward:",reward," done:",done)
 
         # reset the step
         if done == True:
