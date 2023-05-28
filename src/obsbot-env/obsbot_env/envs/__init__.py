@@ -1,1 +1,2 @@
 from obsbot_env.envs.env_obsbot_2dmov import ObsBot2D
+from obsbot_env.envs.env_obsbot_2dpoint import ObsBot2DPoint
