@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     # Create an environment
     num_bots = 10
-    env = gym.make("obsbot2d-v0",num_bots=num_bots)
+    env = gym.make(opt.env_name,num_bots=num_bots)
 
     # Set seeds etc.
     env.seed(seed)

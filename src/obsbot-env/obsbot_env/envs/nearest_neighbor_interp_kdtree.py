@@ -42,14 +42,12 @@ def nearest_neighbor_interp_kd(xy_grd_b,xy_pc_b,R_pc_b):
     b,k,M = R_pc_b.shape
     _,N,_ = xy_grd_b.shape
     # minimum distance by KDTree
-    id_min_np = multi_mindist(xy_grd_b.cpu().detach().numpy(),
-                           xy_pc_b.cpu().detach().numpy(),b)
-    id_min = torch.from_numpy(id_min_np).cuda()
+    id_min = multi_mindist(xy_grd_b, xy_pc_b, b)
     # add dimension 
     #id_min = id_min[:,None,:]
-    id_min = torch.stack(k*[id_min],axis=1)
+    id_min = np.stack(k*[id_min],axis=1)
     # interpolate from point cloud to grid
-    R_grd_b = torch.gather(R_pc_b,2,id_min)
+    R_grd_b = np.take_along_axis(R_pc_b,id_min,axis=2)
     return R_grd_b
 
 if __name__ == '__main__':

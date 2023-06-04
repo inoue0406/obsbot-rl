@@ -22,7 +22,7 @@ class ObsBot2DPoint(gym.Env):
         Args:
             num_bots (int): Number of observation bots.
         """
-        super(ObsBot2D, self).__init__()
+        super(ObsBot2DPoint, self).__init__()
 
         # This is to be referenced by Gym Wrappers.
         self.metadata = {'render.modes': ['rgb_array']}
@@ -109,21 +109,44 @@ class ObsBot2DPoint(gym.Env):
         for k in range(width):
             Ygrid[:, k] = y1grd
 
-        XYgrid = np.concatenate([Xgrid,Ygrid], axis=1)
+        XYgrid = np.stack([Xgrid,Ygrid], axis=0)
+
         return XYgrid
     
-    def grid_to_pc_nearest(self,XY_grd):
+    def grid_to_pc_nearest(self):
         # convert grid to point cloud
         # R_grd: grid value with [batch,channels,height,width] dim
         # XY_pc: point cloud position with [batch,2,N] dim
         #        scaled to [0,1]
-        batch,k,height,width = R_grd.shape
-        XY_grd_tmp = XY_grd.reshape(batch,2,height*width).permute(0,2,1).detach()
-        XY_pc_tmp = XY_pc.permute(0,2,1).detach()
-        R_grd_tmp = R_grd.reshape(batch,k,height*width)
+        R_grd_exp = np.expand_dims(self.R_grd,axis=[0,1])
+        XY_pc_exp = np.expand_dims(np.stack([self.x_pc,self.y_pc], axis=0), axis=0)
+        batch,k,height,width = R_grd_exp.shape
+        XY_grd_tmp = self.XY_grd.reshape(batch,2,height*width).transpose(0,2,1)
+        XY_pc_tmp = XY_pc_exp.transpose(0,2,1)
+        R_grd_tmp = R_grd_exp.reshape(batch,k,height*width)
         # interpolate
         R_pc = nearest_neighbor_interp_kd(XY_pc_tmp,XY_grd_tmp,R_grd_tmp)
         return R_pc
+
+    def pc_to_grid_nearest(self):
+        # convert pc to grid
+        # R_pc: point cloud value with [batch,channels,N] dim
+        # XY_pc: point cloud position with [batch,2,N] dim
+        #        scaled to [0,1]
+        batch = 1
+        _,height,width = self.XY_grd.shape
+
+        R_pc = self.obs
+        XY_grd_tmp = self.XY_grd.reshape(batch,2,height*width).transpose(0,2,1)
+        XY_pc_exp = np.expand_dims(np.stack([self.x_pc,self.y_pc], axis=0), axis=0)
+        XY_pc_tmp = XY_pc_exp.transpose(0,2,1)
+        # interpolate
+        R_grd_interp = nearest_neighbor_interp_kd(XY_grd_tmp,XY_pc_tmp,R_pc)
+        R_grd_interp = R_grd_interp.reshape(height,width)
+        return R_grd_interp
+    
+    def l2_norm(self,V1,V2):
+        return  np.sum(np.power((V1-V2),2))
 
     def reward_nearest_neighbor(self):
         """
@@ -134,13 +157,12 @@ class ObsBot2DPoint(gym.Env):
             int: The reward for the current state.
             bool: Whether the episode is finished.
         """
-        count_right = (x > self.xreward1) &  (x < self.xreward2) &  (y > self.yreward1) &  (y < self.yreward2) 
-        reward = sum(count_right)
+        
+        R_grd_interp = self.pc_to_grid_nearest()
+        # The negative sign is used to work as a reward instead of a loss
+        reward = -1.0*self.l2_norm(self.R_grd,R_grd_interp)
 
-        # finish if all the bots reach right most part of arena
         done = False
-        if sum(count_right) == self.num_bots:
-            done = True
         return reward,done
 
     def step(self,action):
@@ -181,7 +203,7 @@ class ObsBot2DPoint(gym.Env):
             
         info = {}
 
-        return obs, reward, done, info
+        return self.obs, reward, done, info
 
     def render(self, mode='rgb_array'):
         """

@@ -3,7 +3,7 @@
 case="result_20230528_obsbot-rl_pointtest"
 
 # Running RL-based obsbot script
-python ../src/main_obsbot_rl.py --env_name ObsBot2DPoint\
+python ../src/main_obsbot_rl.py --env_name obsbot2dpoint-v0\
        --result_path $case\
        --start_timesteps 10000\
        --eval_freq 5000\
