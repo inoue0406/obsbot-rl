@@ -323,7 +323,8 @@ def evaluate_policy(policy, env, eval_episodes=10):
         float: The average reward over the evaluation episodes.
     """
     avg_reward = 0
-    for _ in range(eval_episodes):
+    for i in range(eval_episodes):
+        print("i=:",i)
         obs = env.reset()
         done = False
         while not done:

@@ -62,9 +62,8 @@ class ObsBot2DPoint(gym.Env):
         self.action_space = gym.spaces.Box(-self.speed_limit,self.speed_limit, (2*num_bots,), np.float32)
 
         # Define observation space.
-        # (X,Y) position is taken as observation
-        # * This is only for a test run, and this is to be changed to observed meteorological field
-        self.observation_space = gym.spaces.Box(-self.arena_size/2,self.arena_size/2, (2*self.num_bots,), np.float32)
+        # (X,Y) position and Meteo field is taken as observation
+        self.observation_space = gym.spaces.Box(-self.arena_size/2,self.arena_size/2, (3*self.num_bots,), np.float32)
 
         # Reward range
         self.reward_range = (0, 1000)
@@ -80,17 +79,21 @@ class ObsBot2DPoint(gym.Env):
         Returns:
             np.array: The initial state of the environment.
         """
-        # Start from arbitrary position
-        self.state = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)
+        # XY : Start from arbitrary position
+        XY_pc = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)
         # Initialize with zero velocity
         self.velocity = np.zeros(2*self.num_bots)
 
         # Set xy positions of observation bots
-        self.x_pc = self.state.reshape([2,self.num_bots])[0,:]
-        self.y_pc = self.state.reshape([2,self.num_bots])[1,:]
+        self.x_pc = XY_pc.reshape([2,self.num_bots])[0,:]
+        self.y_pc = XY_pc.reshape([2,self.num_bots])[1,:]
 
         # Set 2d meteorological field
         self.R_grd = np.zeros((self.field_height,self.field_width))
+        self.R_pc = np.zeros(self.num_bots)
+
+        # Initial state is set as x,y,R.
+        self.state=np.concatenate([XY_pc,self.R_pc])
 
         # Set xy coordinates for 2d grid field
         self.XY_grd = self.xy_grid(self.field_height, self.field_width)
@@ -136,7 +139,7 @@ class ObsBot2DPoint(gym.Env):
         batch = 1
         _,height,width = self.XY_grd.shape
 
-        R_pc = self.obs
+        R_pc = np.expand_dims(self.obs,axis=[0,1])
         XY_grd_tmp = self.XY_grd.reshape(batch,2,height*width).transpose(0,2,1)
         XY_pc_exp = np.expand_dims(np.stack([self.x_pc,self.y_pc], axis=0), axis=0)
         XY_pc_tmp = XY_pc_exp.transpose(0,2,1)
@@ -177,14 +180,18 @@ class ObsBot2DPoint(gym.Env):
         """
         # get next state given action
 
+        # extract xy from state
+        XY_pc = self.state[0:2*self.num_bots]
+
         # calculate next position given velocity and acceleration
         self.velocity = self.velocity + action * self.dt / 10000.0
-        self.state = self.state + self.velocity * self.dt
+        XY_pc = XY_pc + self.velocity * self.dt
         # clip xy position within arena area
-        self.state = np.clip(self.state,-self.arena_size/2,self.arena_size/2)
+        XY_pc = np.clip(XY_pc,-self.arena_size/2,self.arena_size/2)
+        self.state[0:2*self.num_bots] = XY_pc
 
         # get observation
-        self.obs = self.grid_to_pc_nearest()
+        self.obs = self.grid_to_pc_nearest().flatten()
 
         # calculate reward
         reward,done = self.reward_nearest_neighbor()
