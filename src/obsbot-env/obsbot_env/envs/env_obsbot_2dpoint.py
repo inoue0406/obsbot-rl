@@ -139,12 +139,12 @@ class ObsBot2DPoint(gym.Env):
         batch = 1
         _,height,width = self.XY_grd.shape
 
-        R_pc = np.expand_dims(self.obs,axis=[0,1])
         XY_grd_tmp = self.XY_grd.reshape(batch,2,height*width).transpose(0,2,1)
         XY_pc_exp = np.expand_dims(np.stack([self.x_pc,self.y_pc], axis=0), axis=0)
         XY_pc_tmp = XY_pc_exp.transpose(0,2,1)
+        R_pc_exp = np.expand_dims(self.R_pc,axis=[0,1])
         # interpolate
-        R_grd_interp = nearest_neighbor_interp_kd(XY_grd_tmp,XY_pc_tmp,R_pc)
+        R_grd_interp = nearest_neighbor_interp_kd(XY_grd_tmp,XY_pc_tmp,R_pc_exp)
         R_grd_interp = R_grd_interp.reshape(height,width)
         return R_grd_interp
     
@@ -188,10 +188,17 @@ class ObsBot2DPoint(gym.Env):
         XY_pc = XY_pc + self.velocity * self.dt
         # clip xy position within arena area
         XY_pc = np.clip(XY_pc,-self.arena_size/2,self.arena_size/2)
-        self.state[0:2*self.num_bots] = XY_pc
+        self.x_pc = XY_pc.reshape([2,self.num_bots])[0,:]
+        self.y_pc = XY_pc.reshape([2,self.num_bots])[1,:]
 
         # get observation
-        self.obs = self.grid_to_pc_nearest().flatten()
+        self.R_pc = self.grid_to_pc_nearest().flatten()
+
+        # get next state
+        self.state = np.concatenate([XY_pc,self.R_pc])
+
+        # get obs
+        obs = self.state
 
         # calculate reward
         reward,done = self.reward_nearest_neighbor()
@@ -210,7 +217,7 @@ class ObsBot2DPoint(gym.Env):
             
         info = {}
 
-        return self.obs, reward, done, info
+        return obs, reward, done, info
 
     def render(self, mode='rgb_array'):
         """
