@@ -161,9 +161,9 @@ class ObsBot2DPoint(gym.Env):
             bool: Whether the episode is finished.
         """
         
-        R_grd_interp = self.pc_to_grid_nearest()
+        self.R_grd_interp = self.pc_to_grid_nearest()
         # The negative sign is used to work as a reward instead of a loss
-        reward = -1.0*self.l2_norm(self.R_grd,R_grd_interp)
+        reward = -1.0*self.l2_norm(self.R_grd,self.R_grd_interp)
 
         done = False
         return reward,done
@@ -239,30 +239,30 @@ class ObsBot2DPoint(gym.Env):
         # Retun RGB array
         return rgb_array 
     
-    def plot_agent(self):
+    def plot_agent(self,vmin=0,vmax=1):
         """
-        Plot positions of observation bots in the arena using matplotlib.
+        Plot positions of observation bots and estimated meteo field 
+        in the arena using matplotlib.
         """
+
+        # clip xy in [0,1] range
+        x_scaled = (self.x_pc / self.arena_size) + 0.5
+        y_scaled = (self.y_pc / self.arena_size) + 0.5
+        x_plt = np.clip(x_scaled,0,1)*self.R_grd_interp.shape[0]
+        y_plt = np.clip(y_scaled,0,1)*self.R_grd_interp.shape[1]
+
         self.fig = plt.figure(figsize=(7, 7), dpi=200)
         self.ax = plt.axes()
-        #self.ax.axis("off")
-        self.ax.set_xlim(-self.arena_size/2,self.arena_size/2)
-        self.ax.set_ylim(-self.arena_size/2,self.arena_size/2)
-        self.ax.grid()
+        aximg = self.ax.imshow(self.R_grd_interp,vmin=vmin,vmax=vmax,cmap="GnBu",origin='lower')
+        self.fig.colorbar(aximg,ax=self.ax)
+        self.ax.scatter(x_plt, y_plt, c=self.R_pc, cmap="GnBu", edgecolors="black")
+        # set axes range
+        self.ax.set_xlim(0, self.R_grd_interp.shape[0])
+        self.ax.set_ylim(0, self.R_grd_interp.shape[1])
+        self.ax.grid()  
 
-        reward,done = self.reward_rect()
+        reward,done = self.reward_nearest_neighbor()
         self.ax.set_title("Reward: %f" % reward)
-
-        # Plot goal area
-        rect = patches.Rectangle(xy=(self.xreward1, self.yreward1), 
-                                 width=self.xreward2-self.xreward1,
-                                 height=self.yreward2-self.yreward1,
-                                 fc='y')
-        self.ax.add_patch(rect)
-    
-        xpos = self.state.reshape([2,self.num_bots])[0,:]
-        ypos = self.state.reshape([2,self.num_bots])[1,:]
-        scatter = self.ax.scatter(xpos,ypos,marker="o",c="blue",s=30)
     
     def fig2array(self):
         """
