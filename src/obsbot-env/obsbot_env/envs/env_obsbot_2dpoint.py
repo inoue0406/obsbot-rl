@@ -269,18 +269,36 @@ class ObsBot2DPoint(gym.Env):
         x_plt = np.clip(x_scaled,0,1)*self.R_grd_interp.shape[0]
         y_plt = np.clip(y_scaled,0,1)*self.R_grd_interp.shape[1]
 
-        self.fig = plt.figure(figsize=(7, 7), dpi=200)
-        self.ax = plt.axes()
-        aximg = self.ax.imshow(self.R_grd_interp,vmin=vmin,vmax=vmax,cmap="GnBu",origin='lower')
-        self.fig.colorbar(aximg,ax=self.ax)
-        self.ax.scatter(x_plt, y_plt, c=self.R_pc, cmap="GnBu", edgecolors="black")
-        # set axes range
-        self.ax.set_xlim(0, self.R_grd_interp.shape[0])
-        self.ax.set_ylim(0, self.R_grd_interp.shape[1])
-        self.ax.grid()  
+        #self.fig = plt.figure(figsize=(7, 10), dpi=200)
+        self.fig, self.ax = plt.subplots(2, 1, figsize=(7, 7))
 
+        #self.ax = plt.axes()
         reward,done = self.reward_nearest_neighbor()
-        self.ax.set_title("Reward: %f" % reward)
+        self.fig.suptitle("Reward: %f" % reward)
+
+        # 1st plot: ground truth
+        #self.ax = self.fig.add_subplot(1, 2, 1)
+        aximg = self.ax[0].imshow(self.R_grd,vmin=vmin,vmax=vmax,cmap="GnBu",origin='lower')
+        self.fig.colorbar(aximg,ax=self.ax[0])
+        self.ax[0].scatter(x_plt, y_plt, c=self.R_pc, cmap="GnBu", edgecolors="black")
+        # set axes range
+        self.ax[0].set_xlim(0, self.R_grd.shape[0])
+        self.ax[0].set_ylim(0, self.R_grd.shape[1])
+        self.ax[0].grid()  
+
+        # 2nd plot: prediction
+        #self.ax = self.fig.add_subplot(1, 2, 2)
+        aximg2 = self.ax[1].imshow(self.R_grd_interp,vmin=vmin,vmax=vmax,cmap="GnBu",origin='lower')
+        self.fig.colorbar(aximg2,ax=self.ax[1])
+        self.ax[1].scatter(x_plt, y_plt, c=self.R_pc, cmap="GnBu", edgecolors="black")
+        # set axes range
+        self.ax[1].set_xlim(0, self.R_grd_interp.shape[0])
+        self.ax[1].set_ylim(0, self.R_grd_interp.shape[1])
+        self.ax[1].grid() 
+
+        #self.fig.subplots_adjust(right=0.95)
+        #cbar_ax = self.fig.add_axes([0.96, 0.15, 0.01, 0.7])
+        #self.fig.colorbar(aximg,ax=cbar_ax)
     
     def fig2array(self):
         """
