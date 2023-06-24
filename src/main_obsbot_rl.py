@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     # Create an environment
     num_bots = 10
-    env = gym.make(opt.env_name,num_bots=num_bots)
+    env = gym.make(opt.env_name,num_bots=num_bots,metfield_path=opt.metfield_path)
 
     # Set seeds etc.
     env.seed(seed)

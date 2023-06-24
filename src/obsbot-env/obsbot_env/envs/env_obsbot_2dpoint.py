@@ -7,6 +7,8 @@ such as rainfall or temperature gauges given a 2d meteorological field.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import glob
+import h5py
 
 import random
 import gym
@@ -15,14 +17,23 @@ import gym
 from obsbot_env.envs.nearest_neighbor_interp_kdtree import nearest_neighbor_interp_kd
 
 class ObsBot2DPoint(gym.Env):
-    def __init__(self, num_bots):
+    def __init__(self, num_bots, metfield_path):
         """
         Initialize the environment with the given number of observation bots.
         
         Args:
             num_bots (int): Number of observation bots.
+            metfield_path (src): The directory path containing meteorological data (in .h5 format)
         """
         super(ObsBot2DPoint, self).__init__()
+
+        # File path for meteorological field
+        self.data_files = glob.glob(metfield_path+"*h5")
+        self.data_files = sorted(self.data_files)
+        self.data_id = 0
+        self.data_id_max = len(self.data_files)
+        print("Meteorolgical data path:",metfield_path)
+        print("Number of met fields used in the training process:",self.data_id_max)
 
         # This is to be referenced by Gym Wrappers.
         self.metadata = {'render.modes': ['rgb_array']}
@@ -69,8 +80,8 @@ class ObsBot2DPoint(gym.Env):
         self.reward_range = (0, 1000)
 
         # Grid size of a meteorological field given as the ground truth
-        self.field_height = 200
-        self.field_width = 200
+        self.field_height = 256
+        self.field_width = 256
 
     def reset(self):
         """
@@ -89,7 +100,14 @@ class ObsBot2DPoint(gym.Env):
         self.y_pc = XY_pc.reshape([2,self.num_bots])[1,:]
 
         # Set 2d meteorological field
-        self.R_grd = np.zeros((self.field_height,self.field_width))
+        fpath = self.data_files[self.data_id]
+        print("Met field data id and path:",self.data_id," ",fpath)
+        h5file = h5py.File(fpath,'r')
+        self.R_grd = h5file['R'][()].astype(np.float32)
+        # TEMP use initial data only
+        self.R_grd = self.R_grd[0,:,:]
+        #self.R_grd = np.zeros((self.field_height,self.field_width))
+        self.data_id = (self.data_id + 1) % self.data_id_max
         self.R_pc = np.zeros(self.num_bots)
 
         # Initial state is set as x,y,R.
