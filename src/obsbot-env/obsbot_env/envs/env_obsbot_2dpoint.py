@@ -115,6 +115,8 @@ class ObsBot2DPoint(gym.Env):
 
         # Set xy coordinates for 2d grid field
         self.XY_grd = self.xy_grid(self.field_height, self.field_width)
+        # scale from [0,1] to  arena size
+        self.XY_grd = (self.XY_grd - 0.5) * self.arena_size
 
         return self.state
     
