@@ -8,6 +8,16 @@ def parse_opts():
         default='ObsBot2D',
         help='Name of a RL environment')
     parser.add_argument(
+        '--num_bots',
+        default=50,
+        type=int,
+        help='The number of observation bots in the environment')
+    parser.add_argument(
+        '--max_episode_steps',
+        default=50,
+        type=int,
+        help='The number of steps per episode')
+    parser.add_argument(
         '--metfield_path',
         type=str,
         help=' The directory path containing meteorological data (in .h5 format)')

@@ -17,12 +17,13 @@ import gym
 from obsbot_env.envs.nearest_neighbor_interp_kdtree import nearest_neighbor_interp_kd
 
 class ObsBot2DPoint(gym.Env):
-    def __init__(self, num_bots, metfield_path):
+    def __init__(self, num_bots, max_episode_steps, metfield_path):
         """
         Initialize the environment with the given number of observation bots.
         
         Args:
-            num_bots (int): Number of observation bots.
+            num_bots (int): The number of observation bots.
+            max_episode_steps (int): The number of steps per episode.
             metfield_path (src): The directory path containing meteorological data (in .h5 format)
         """
         super(ObsBot2DPoint, self).__init__()
@@ -44,13 +45,6 @@ class ObsBot2DPoint(gym.Env):
         # define the size of a rectangular arena in [m]
         self.arena_size = 10000.0
 
-        # define XY coordinates of the reward area
-        #self.xreward1 = 2000.0
-        self.xreward1 = 0.0
-        self.xreward2 = 4000.0
-        self.yreward1 = -4500.0
-        self.yreward2 = 4500.0
-
         # time step in [s]
         self.dt = 300
 
@@ -58,7 +52,7 @@ class ObsBot2DPoint(gym.Env):
         self.scaling_coeff = 10000.0
         
         # maximum steps per episode
-        self._max_episode_steps = 30
+        self._max_episode_steps = max_episode_steps
         # run steps for counting up
         self.steps = 0
 
@@ -272,7 +266,7 @@ class ObsBot2DPoint(gym.Env):
         y_plt = np.clip(y_scaled,0,1)*self.R_grd_interp.shape[1]
 
         #self.fig = plt.figure(figsize=(7, 10), dpi=200)
-        self.fig, self.ax = plt.subplots(2, 1, figsize=(7, 7))
+        self.fig, self.ax = plt.subplots(2, 1, figsize=(7, 7), dpi=300)
 
         #self.ax = plt.axes()
         reward,done = self.reward_nearest_neighbor()

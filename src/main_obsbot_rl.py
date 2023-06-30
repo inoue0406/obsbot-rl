@@ -44,8 +44,10 @@ if __name__ == '__main__':
         os.makedirs(model_path)
 
     # Create an environment
-    num_bots = 10
-    env = gym.make(opt.env_name,num_bots=num_bots,metfield_path=opt.metfield_path)
+    env = gym.make(opt.env_name,
+                   num_bots=opt.num_bots,
+                   max_episode_steps=opt.max_episode_steps,
+                   metfield_path=opt.metfield_path)
 
     # Set seeds etc.
     env.seed(seed)
