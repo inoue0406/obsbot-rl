@@ -47,7 +47,8 @@ if __name__ == '__main__':
     env = gym.make(opt.env_name,
                    num_bots=opt.num_bots,
                    max_episode_steps=opt.max_episode_steps,
-                   metfield_path=opt.metfield_path)
+                   metfield_path=opt.metfield_path,
+                   action_scale=opt.action_scale)
 
     # Set seeds etc.
     env.seed(seed)

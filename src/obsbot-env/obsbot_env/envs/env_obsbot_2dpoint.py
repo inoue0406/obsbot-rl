@@ -17,14 +17,15 @@ import gym
 from obsbot_env.envs.nearest_neighbor_interp_kdtree import nearest_neighbor_interp_kd
 
 class ObsBot2DPoint(gym.Env):
-    def __init__(self, num_bots, max_episode_steps, metfield_path):
+    def __init__(self, num_bots, max_episode_steps, metfield_path, action_scale=1.0):
         """
         Initialize the environment with the given number of observation bots.
         
         Args:
             num_bots (int): The number of observation bots.
             max_episode_steps (int): The number of steps per episode.
-            metfield_path (src): The directory path containing meteorological data (in .h5 format)
+            metfield_path (str): The directory path containing meteorological data (in .h5 format).
+            action_scale (float): A scale parameter applied to the action intensity.
         """
         super(ObsBot2DPoint, self).__init__()
 
@@ -60,6 +61,8 @@ class ObsBot2DPoint(gym.Env):
 
         # empty state
         self.state = None
+
+        self.action_scale = action_scale
 
         # Define action space.
         # velocity must be smaller than speed limit.
@@ -198,7 +201,7 @@ class ObsBot2DPoint(gym.Env):
         XY_pc = self.state[0:2*self.num_bots]
 
         # calculate next position given velocity and acceleration
-        self.velocity = self.velocity + action * self.dt / 10000.0
+        self.velocity = self.velocity + self.action_scale * action * self.dt / 10000.0
         XY_pc = XY_pc + self.velocity * self.dt
         # clip xy position within arena area
         XY_pc = np.clip(XY_pc,-self.arena_size/2,self.arena_size/2)

@@ -41,6 +41,11 @@ def parse_opts():
         type=int,
         help='Total number of iterations/timesteps')
     parser.add_argument(
+        '--action_scale',
+        default=1.0,
+        type=float,
+        help='A scale parameter applied to the action intensity')
+    parser.add_argument(
         '--save_models',
         action='store_true',
         help='Whether or not to save the trained model')
