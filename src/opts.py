@@ -18,6 +18,11 @@ def parse_opts():
         type=int,
         help='The number of steps per episode')
     parser.add_argument(
+        '--init_mode',
+        default="random",
+        type=str,
+        help='Initialization mode in random/grid')
+    parser.add_argument(
         '--metfield_path',
         type=str,
         help=' The directory path containing meteorological data (in .h5 format)')

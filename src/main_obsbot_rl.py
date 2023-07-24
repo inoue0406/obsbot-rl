@@ -48,6 +48,7 @@ if __name__ == '__main__':
                    num_bots=opt.num_bots,
                    max_episode_steps=opt.max_episode_steps,
                    metfield_path=opt.metfield_path,
+                   init_mode=opt.init_mode,
                    action_scale=opt.action_scale)
 
     # Set seeds etc.

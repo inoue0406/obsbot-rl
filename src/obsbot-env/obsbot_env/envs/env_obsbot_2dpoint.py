@@ -17,7 +17,7 @@ import gym
 from obsbot_env.envs.nearest_neighbor_interp_kdtree import nearest_neighbor_interp_kd
 
 class ObsBot2DPoint(gym.Env):
-    def __init__(self, num_bots, max_episode_steps, metfield_path, action_scale=1.0):
+    def __init__(self, num_bots, max_episode_steps, metfield_path, init_mode, action_scale=1.0):
         """
         Initialize the environment with the given number of observation bots.
         
@@ -25,6 +25,7 @@ class ObsBot2DPoint(gym.Env):
             num_bots (int): The number of observation bots.
             max_episode_steps (int): The number of steps per episode.
             metfield_path (str): The directory path containing meteorological data (in .h5 format).
+            init_mode (str): Initialization mode of the position of observation bots.
             action_scale (float): A scale parameter applied to the action intensity.
         """
         super(ObsBot2DPoint, self).__init__()
@@ -59,6 +60,8 @@ class ObsBot2DPoint(gym.Env):
 
         self.num_bots = num_bots
 
+        self.init_mode = init_mode
+
         # empty state
         self.state = None
 
@@ -80,6 +83,26 @@ class ObsBot2DPoint(gym.Env):
         self.field_height = 256
         self.field_width = 256
 
+    def initialize_position(self,mode="random"):
+        """
+        Initialize position with random or grid arrangement
+        
+        Returns:
+            np.array: The initial position of the observation bots.
+        """
+        if mode == "random":
+            # random
+            XY_pc = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)*1.0
+        elif mode == "grid":
+            # regular grid
+            grid_size = int(np.sqrt(self.num_bots))
+            xgrd = np.linspace(0,1,grid_size)
+            ygrd = np.linspace(0,1,grid_size)
+            X_pc,Y_pc = np.meshgrid(xgrd,ygrd)
+            XY_pc = np.stack([X_pc,Y_pc]).flatten()
+            XY_pc = (XY_pc - 0.5) * self.arena_size
+        return XY_pc
+
     def reset(self):
         """
         Reset the environment to an initial state.
@@ -88,7 +111,7 @@ class ObsBot2DPoint(gym.Env):
             np.array: The initial state of the environment.
         """
         # XY : Start from arbitrary position
-        XY_pc = np.random.randint(-self.arena_size/2,self.arena_size/2,2*self.num_bots)
+        XY_pc = self.initialize_position(self.init_mode)
         # Initialize with zero velocity
         self.velocity = np.zeros(2*self.num_bots)
 
