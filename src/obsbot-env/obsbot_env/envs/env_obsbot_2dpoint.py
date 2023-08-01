@@ -203,7 +203,9 @@ class ObsBot2DPoint(gym.Env):
         
         self.R_grd_interp = self.pc_to_grid_nearest()
         # The negative sign is used to work as a reward instead of a loss
-        reward = -1.0*self.l2_norm(self.R_grd,self.R_grd_interp)
+        #reward = -1.0*self.l2_norm(self.R_grd,self.R_grd_interp)
+        # Try the the inverse
+        reward = 1.0/self.l2_norm(self.R_grd,self.R_grd_interp)
 
         done = False
         return reward,done
